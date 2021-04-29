@@ -23,9 +23,16 @@ class Socket:
     # implementing TCP for our respective operating systems.
     ##################################################################
     def connect(self, address):
+        print("connect!")
         self.cb.dst = address
         self.coutput.cirt_output()
-        print("connect!")
+        # wait for synack
+        packet, address = self.cinput.cirt_input()
+        if packet.is_synack():
+            logging.info("Received SYNACK")
+            logging.info("Active Opener ESTABLISHED")
+            self.cb.state = ESTABLISHED
+            self.coutput.cirt_output()
 
 
 
@@ -40,10 +47,16 @@ class Socket:
         packet, address = self.cinput.cirt_input()
         if packet.is_syn():
             logging.info("Received SYN packet")
+            print("accept connection!")
             # send syn and ack
             self.cb.state = SYN_RECV
+            self.cb.dst = address
             self.coutput.cirt_output()
-        print("accep connection!")
+            # wait for ack from active opener
+            packet, address = self.cinput.cirt_input()
+            if packet.is_ack():
+                logging.info("Passive Opener ESTABLISHED")
+                self.cb.state = ESTABLISHED
 
 
 
