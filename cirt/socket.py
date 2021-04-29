@@ -28,10 +28,13 @@ class Socket:
         self.coutput.cirt_output()
         # wait for synack
         packet, address = self.cinput.cirt_input()
-        if packet.is_synack():
+        # check for valid synack
+        if packet.is_synack() and packet.ackno == self.cb.seqno + 1:
             logging.info("Received SYNACK")
             logging.info("Active Opener ESTABLISHED")
             self.cb.state = ESTABLISHED
+            self.cb.seqno += 1
+            self.cb.ackno = packet.seqno + 1 
             self.coutput.cirt_output()
 
 
@@ -51,10 +54,12 @@ class Socket:
             # send syn and ack
             self.cb.state = SYN_RECV
             self.cb.dst = address
+            self.cb.seqno = S_ISN
+            self.cb.ackno = packet.seqno + 1
             self.coutput.cirt_output()
             # wait for ack from active opener
             packet, address = self.cinput.cirt_input()
-            if packet.is_ack():
+            if packet.is_ack() and packet.ackno == self.cb.seqno + 1:
                 logging.info("Passive Opener ESTABLISHED")
                 self.cb.state = ESTABLISHED
 
