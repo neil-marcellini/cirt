@@ -23,7 +23,10 @@ class Socket:
     # implementing TCP for our respective operating systems.
     ##################################################################
     def connect(self, address):
+        self.cb.dst = address
+        self.coutput.cirt_output()
         print("connect!")
+
 
 
     def listen(self, port):
@@ -33,7 +36,15 @@ class Socket:
 
 
     def accept(self):
-        print("accept a connection!")
+        # send a syn ack
+        packet, address = self.cinput.cirt_input()
+        if packet.is_syn():
+            logging.info("Received SYN packet")
+            # send syn and ack
+            self.cb.state = SYN_RECV
+            self.coutput.cirt_output()
+        print("accep connection!")
+
 
 
     def send(self, data):

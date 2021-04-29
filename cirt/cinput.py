@@ -12,8 +12,11 @@ class Cinput:
         data, address = self.cb.sock.recvfrom(size)
         packet = Packet()
         packet.parse_packet(data)
-        logging.info(f'RECV SEQ:{packet.seqno} ACK:{packet.ackno} LEN:{len(packet.data)} CWND:{self.cb.cwnd} FLAG:{FLAG_STR[packet.flags]}')
+        # comment out because not using cwnd
+        # logging.info(f'RECV SEQ:{packet.seqno} ACK:{packet.ackno} LEN:{len(packet.data)} CWND:{self.cb.cwnd} FLAG:{FLAG_STR[packet.flags]}')
+        logging.info(f'RECV SEQ:{packet.seqno} ACK:{packet.ackno} LEN:{len(packet.data)} FLAG:{FLAG_STR[packet.flags]}')
         return packet, address
     
     def cirt_input(self):
         packet, address = self.__recv(512)
+        return packet, address
