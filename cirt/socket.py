@@ -5,6 +5,7 @@ from .controlblock import ControlBlock
 from .coutput import Coutput
 from .cinput import Cinput
 import logging
+import time
 
 class Socket:
     def __init__(self):
@@ -61,6 +62,7 @@ class Socket:
             packet, address = self.cinput.cirt_input()
             if packet.is_ack() and packet.ackno == self.cb.seqno + 1:
                 logging.info("Passive Opener ESTABLISHED")
+                self.cb.seqno = packet.ackno
                 self.cb.state = ESTABLISHED
 
 
@@ -71,7 +73,49 @@ class Socket:
 
     def recv(self, size):
         print("receive some data!")
+        packet, address = self.cinput.cirt_input()
+        if packet.is_fin():
+            # we have a valid fin segment, ack and fin
+            self.cb.state = CLOSE_WAIT
+            logging.info(f"State = {self.cb.state}")
+            self.cb.ackno = packet.ackno + 1
+            self.coutput.cirt_output()
+            self.cb.state = LAST_ACK
+            logging.info(f"State = {self.cb.state}")
+            self.cb.ackno = self.cb.ackno + MSS + 1
+            self.coutput.cirt_output()
+            packet, address = self.cinput.cirt_input()
+            if packet.is_ack() and packet.ackno == self.cb.ackno + 1:
+                self.cb.state = CLOSED
+                logging.info("Passive CLOSED")
+
 
 
     def close(self):
         print("we done here")
+        # if already closed you're done
+        if self.cb.state == CLOSED:
+            return
+        self.cb.state = FIN_WAIT_1
+        logging.info(f"State = {self.cb.state}")
+        # ackno for last data sent from client to server
+        self.cb.ackno = 0
+        # seqno = current seqno server expects, already set
+        self.coutput.cirt_output()
+        packet, address = self.cinput.cirt_input()
+        if packet.is_ack() and packet.ackno == 1:
+            # valid fin ack
+            self.cb.state = FIN_WAIT_2
+            logging.info(f"State = {self.cb.state}")
+            # wait for fin from the other side
+            packet, address = self.cinput.cirt_input()
+            # if packet.is_fin() and packet.ackno == self.cb.seqno + MSS + 1:
+            # valid fin from other side
+            self.cb.state = TIME_WAIT
+            self.cb.ackno = packet.ackno + 1
+            self.coutput.cirt_output()
+            print("Waiting 1 minute to close.")
+            time.sleep(60)
+            self.cb.state = CLOSED
+            logging.info("Server Connection CLOSED")
+            

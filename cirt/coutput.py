@@ -15,8 +15,6 @@ class Coutput:
         logging.info("Sending packet:")
         logging.info(f"dest = {self.cb.dst}")
         logging.info(f'SEND SEQ:{packet.seqno} ACK:{packet.ackno} LEN:{len(packet.data)} FLAG:{FLAG_STR[packet.flags]}')
-        send_packet = packet.make_packet()
-        logging.info(f"packet = {send_packet}")
         self.cb.sock.sendto(packet.make_packet(), self.cb.dst)
     
     
