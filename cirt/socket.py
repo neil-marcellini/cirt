@@ -69,6 +69,15 @@ class Socket:
 
     def send(self, data):
         print("send some data!")
+        self.coutput.cirt_output(data=data)
+        self.cb.seqno += len(data)
+        # wait for ack before being able to send more
+        is_ack = False
+        while not is_ack:
+            packet, address = self.cinput.cirt_input()
+            is_ack = packet.is_ack() and packet.ackno == self.cb.seqno
+
+
 
 
     def recv(self, size):
@@ -88,6 +97,11 @@ class Socket:
             if packet.is_ack() and packet.ackno == self.cb.ackno + 1:
                 self.cb.state = CLOSED
                 logging.info("Passive CLOSED")
+        elif len(packet.data) > 0:
+            #packet has data, send back ack
+            self.cb.ackno = packet.seqno + len(packet.data)
+            self.coutput.cirt_output()
+            return packet.data
 
 
 

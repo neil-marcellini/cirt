@@ -18,8 +18,7 @@ class Coutput:
         self.cb.sock.sendto(packet.make_packet(), self.cb.dst)
     
     
-    def cirt_output(self):
+    def cirt_output(self, data=b''):
         flag = OUT_FLAGS[self.cb.state]
-
-        packet = Packet(self.cb.seqno, self.cb.ackno, 0, flag, b'')
+        packet = Packet(self.cb.seqno, self.cb.ackno, 0, flag, data)
         self.__send(packet)
